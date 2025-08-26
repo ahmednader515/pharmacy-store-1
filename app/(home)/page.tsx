@@ -7,6 +7,7 @@ import Image from 'next/image'
 import { getHomePageData } from '@/lib/actions/product.actions'
 import data from '@/lib/data'
 
+export const runtime = 'nodejs'
 export default async function HomePage() {
   try {
     const { carousels } = data.settings[0];

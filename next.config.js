@@ -32,6 +32,8 @@ const nextConfig = {
     serverActions: {
       allowedOrigins: ['localhost:3000', 'localhost:3001'],
     },
+    // Ensure Prisma engine files are included in server output
+    instrumentationHook: true,
   },
   
   // Reduce bundle size and improve loading
@@ -74,6 +76,13 @@ const nextConfig = {
       ...config.resolve.alias,
       'app/[locale]': false,
     }
+    // Include prisma and @prisma/client in server bundle for engine resolution
+    if (isServer) {
+      config.externals = config.externals || []
+      // Keep prisma as external to load engines from node_modules at runtime
+      config.externals.push('prisma')
+      config.externals.push('@prisma/client')
+    }
     
     // Add error handling for production builds
     if (!dev && isServer) {
@@ -89,6 +98,7 @@ const nextConfig = {
   // Environment-specific settings
   env: {
     CUSTOM_KEY: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+    PRISMA_CLIENT_ENGINE_TYPE: 'binary',
   },
   
   // Handle runtime errors gracefully
