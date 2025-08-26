@@ -19,29 +19,22 @@ if (process.env.NODE_ENV === 'development') {
   globalThis.prismaGlobal = prisma
 }
 
+let prismaConnectedPromise: Promise<void> | null = null
+
 export const connectToDatabase = async (
   DATABASE_URL = process.env.DATABASE_URL
 ) => {
-  console.log('🔌 Attempting database connection...')
-  console.log('Environment:', process.env.NODE_ENV)
-  console.log('DATABASE_URL exists:', !!DATABASE_URL)
-  
-  // Require DATABASE_URL in all environments
   if (!DATABASE_URL) {
     throw new Error('DATABASE_URL is not set. Please configure your environment variables.')
   }
-
-  try {
-    console.log('🔍 Testing database connection...')
-    // Test the connection by running a simple query
-    await prisma.$queryRaw`SELECT 1`
-    console.log('✅ Database connection successful')
-    
-    return { prisma, isMock: false }
-  } catch (error) {
-    console.error('❌ Failed to connect to PostgreSQL:', error)
-    throw error
+  if (!prismaConnectedPromise) {
+    prismaConnectedPromise = prisma.$connect().catch((err) => {
+      prismaConnectedPromise = null
+      throw err
+    })
   }
+  await prismaConnectedPromise
+  return { prisma, isMock: false }
 }
 
 export const clearDatabaseCache = () => {
