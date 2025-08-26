@@ -59,8 +59,6 @@ export default function SignUpForm() {
             errorMessage = 'يوجد حساب بهذا الرقم بالفعل. يرجى تسجيل الدخول بدلاً من ذلك.'
           } else if (res.error.includes('validation')) {
             errorMessage = 'يرجى التحقق من إدخالك والمحاولة مرة أخرى.'
-          } else if (res.error.includes('mock mode')) {
-            errorMessage = 'إنشاء الحساب غير متاح في الوضع التجريبي.'
           } else {
             errorMessage = res.error
           }

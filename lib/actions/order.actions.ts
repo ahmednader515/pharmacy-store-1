@@ -20,13 +20,11 @@ export const createOrder = async (clientSideCart: Cart) => {
     console.log('🔍 Order creation debug:')
     console.log('Session:', session)
     console.log('Session user ID:', session?.user?.id)
-    console.log('Connection isMock:', connection.isMock)
+    // Using real database connection
     
     if (!session) throw new Error('User not authenticated')
     
-    if (connection.isMock) {
-      return { success: false, message: 'Cannot create order in mock mode' }
-    }
+    // Mock mode removed: always use database
     
     // Validate that cart exists and has items
     if (!clientSideCart || !clientSideCart.items || !Array.isArray(clientSideCart.items)) {
@@ -82,9 +80,7 @@ export const createOrderFromCart = async (
   
   const connection = await connectToDatabase()
   
-  if (connection.isMock) {
-    throw new Error('Cannot create order in mock mode')
-  }
+  // Mock mode removed: always use database
   
   if (!connection.prisma) {
     throw new Error('Database connection failed')
@@ -164,9 +160,7 @@ export async function updateOrderToPaid(orderId: string) {
   try {
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      return { success: false, message: 'Cannot update order in mock mode' }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'Database connection failed' }
@@ -191,8 +185,7 @@ export async function updateOrderToPaid(orderId: string) {
       }
     })
     
-    if (!process.env.DATABASE_URL?.includes('localhost'))
-      await updateProductStock(orderId)
+    await updateProductStock(orderId)
     if (order.user.phone) await sendPurchaseReceipt({ order })
     revalidatePath(`/account/orders/${orderId}`)
     return { success: true, message: 'Order paid successfully' }
@@ -204,9 +197,7 @@ const updateProductStock = async (orderId: string) => {
   try {
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      return
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       throw new Error('Database connection failed')
@@ -237,9 +228,7 @@ export async function deliverOrder(orderId: string) {
   try {
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      return { success: false, message: 'Cannot deliver order in mock mode' }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'Database connection failed' }
@@ -277,9 +266,6 @@ export async function deleteOrder(id: string) {
   try {
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      return { success: false, message: 'Cannot delete order in mock mode' }
-    }
     
     if (!connection.prisma) {
       return { success: false, message: 'Database connection failed' }
@@ -314,26 +300,7 @@ export async function getAllOrders({
   limit = limit || pageSize
   const connection = await connectToDatabase()
   
-  if (connection.isMock) {
-    console.log('📝 Mock mode: returning mock order data')
-    // Return mock orders from data.ts
-    const mockOrders = data.orders.map((order, index) => ({
-      ...order,
-      id: `mock-order-${index + 1}`,
-      createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)), // Different creation dates
-      user: {
-        name: data.users[index]?.name || 'Unknown User'
-      }
-    }))
-    
-    const skipAmount = (Number(page) - 1) * limit
-    const paginatedOrders = mockOrders.slice(skipAmount, skipAmount + limit)
-    
-    return {
-      data: JSON.parse(JSON.stringify(paginatedOrders)),
-      totalPages: Math.ceil(mockOrders.length / limit),
-    }
-  }
+  // Mock mode removed: always use database
   
   if (!connection.prisma) {
     console.warn('Database connection failed in getAllOrders')
@@ -379,24 +346,7 @@ export async function getMyOrders({
     throw new Error('User is not authenticated')
   }
   
-  if (connection.isMock) {
-    console.log('📝 Mock mode: returning mock my orders data')
-    // Return mock orders from data.ts for the current user
-    const mockOrders = data.orders.map((order, index) => ({
-      ...order,
-      id: `mock-order-${index + 1}`,
-      createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)), // Different creation dates
-      userId: session?.user?.id || 'mock-user-id',
-    }))
-    
-    const skipAmount = (Number(page) - 1) * limit
-    const paginatedOrders = mockOrders.slice(skipAmount, skipAmount + limit)
-    
-    return {
-      data: JSON.parse(JSON.stringify(paginatedOrders)),
-      totalPages: Math.ceil(mockOrders.length / limit),
-    }
-  }
+  // Mock mode removed: always use database
   
   if (!connection.prisma) {
     console.warn('Database connection failed in getMyOrders')
@@ -429,15 +379,7 @@ export async function getMyOrders({
 export async function getOrderById(orderId: string) {
   const connection = await connectToDatabase()
   
-  if (connection.isMock) {
-    console.log('📝 Mock mode: returning mock order by id')
-    // Find mock order by exact ID match
-    const mockOrder = data.orders.find(order => order.id === orderId)
-    if (mockOrder) {
-      return JSON.parse(JSON.stringify(mockOrder))
-    }
-    return null
-  }
+  // Mock mode removed: always use database
   
   if (!connection.prisma) {
     console.warn('Database connection failed in getOrderById')
@@ -698,9 +640,7 @@ export async function getOrderSummary(date: DateRange) {
 async function getSalesChartData(date: DateRange) {
   const connection = await connectToDatabase()
   
-  if (connection.isMock) {
-    return []
-  }
+  // Mock mode removed: always use database
 
   if (!connection.prisma) {
     return []
@@ -734,9 +674,7 @@ async function getSalesChartData(date: DateRange) {
 async function getTopSalesProducts(date: DateRange) {
   const connection = await connectToDatabase()
   
-  if (connection.isMock) {
-    return []
-  }
+  // Mock mode removed: always use database
 
   if (!connection.prisma) {
     return []
@@ -789,9 +727,7 @@ async function getTopSalesProducts(date: DateRange) {
 async function getTopSalesCategories(date: DateRange, limit = 5) {
   const connection = await connectToDatabase()
   
-  if (connection.isMock) {
-    return []
-  }
+  // Mock mode removed: always use database
 
   if (!connection.prisma) {
     return []

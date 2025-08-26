@@ -10,10 +10,7 @@ export async function initializeDatabase() {
   try {
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      console.log('⚠️  Database connection failed, using mock data mode')
-      return false
-    }
+    // Mock mode removed: require successful DB connection
     
     console.log('✅ Database initialized successfully')
     return true

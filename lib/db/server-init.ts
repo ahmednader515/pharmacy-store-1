@@ -24,10 +24,7 @@ export async function initializeServerDatabase() {
   try {
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      console.log('⚠️  Server database connection failed, using mock data mode')
-      return false
-    }
+    // Mock mode removed: require successful DB connection
     
     console.log('✅ Server database initialized successfully')
     global.__serverDbInitialized = true

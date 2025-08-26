@@ -37,9 +37,7 @@ export async function createProduct(data: IProductInput) {
     const product = ProductInputSchema.parse(data)
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      return { success: false, message: 'Cannot create product in mock mode' }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'Database connection failed' }
@@ -84,9 +82,7 @@ export async function updateProduct(data: z.infer<typeof ProductUpdateSchema>) {
     const product = ProductUpdateSchema.parse(data)
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      return { success: false, message: 'Cannot update product in mock mode' }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'Database connection failed' }
@@ -132,9 +128,7 @@ export async function deleteProduct(id: string) {
   try {
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      return { success: false, message: 'Cannot delete product in mock mode' }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'Database connection failed' }
@@ -159,17 +153,7 @@ export async function deleteProduct(id: string) {
 export async function getProductById(productId: string) {
   try {
     const connection = await connectToDatabase()
-    if (connection.isMock) {
-      // In mock mode, try to find by id first, then by slug
-      let mockProduct = data.products.find(p => p.slug === productId)
-      if (!mockProduct) return null
-      // Add id field for mock products
-      const productWithId = {
-        ...mockProduct,
-        id: `mock-${productId}`,
-      }
-      return JSON.parse(JSON.stringify(productWithId))
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       console.warn('Database connection failed in getProductById')
@@ -206,20 +190,7 @@ export async function getAllProductsForAdmin({
     } = data.settings[0];
     limit = limit || pageSize
 
-    if (connection.isMock) {
-      // Return mock products for admin with id field
-      const mockProducts = data.products.slice(0, limit).map((product, index) => ({
-        ...product,
-        id: `mock-${index + 1}`,
-      }))
-      return {
-        products: JSON.parse(JSON.stringify(mockProducts)),
-        totalPages: Math.ceil(data.products.length / pageSize),
-        totalProducts: data.products.length,
-        from: pageSize * (Number(page) - 1) + 1,
-        to: pageSize * (Number(page) - 1) + mockProducts.length,
-      }
-    }
+    // Mock mode removed: always use database
 
     if (!connection.prisma) {
       console.warn('Database connection failed in getAllProductsForAdmin')
@@ -288,14 +259,6 @@ export async function getAllCategories() {
     // Check cache first
     const cachedCategories = getCachedData<string[]>('categories', async () => {
       const connection = await connectToDatabase()
-      if (connection.isMock) {
-        console.log('📝 Mock mode: getting categories from mock data')
-        const categories = [...new Set(data.products
-          .filter(p => p.isPublished)
-          .map(p => p.category))]
-        console.log(`✅ Mock mode: found ${categories.length} categories:`, categories)
-        return categories
-      }
       
       if (!connection.prisma) {
         console.warn('Database connection failed in getAllCategories cache')
@@ -322,17 +285,7 @@ export async function getAllCategories() {
     
     // If not cached, fetch and cache
     const connection = await connectToDatabase()
-    console.log(`📡 Database connection mode: ${connection.isMock ? 'MOCK' : 'REAL'}`)
-    
-    if (connection.isMock) {
-      console.log('📝 Mock mode: getting categories from mock data (no cache)')
-      const categories = [...new Set(data.products
-        .filter(p => p.isPublished)
-        .map(p => p.category))]
-      console.log(`✅ Mock mode: found ${categories.length} categories:`, categories)
-      setCachedData('categories', categories)
-      return categories
-    }
+    console.log(`📡 Database connection established`)
     
     if (!connection.prisma) {
       console.warn('Database connection failed in getAllCategories')
@@ -368,25 +321,7 @@ export async function getProductsForCard({
   try {
     console.log(`🔍 getProductsForCard called with tag: ${tag}, limit: ${limit}`)
     const connection = await connectToDatabase()
-    console.log(`📡 Database connection mode: ${connection.isMock ? 'MOCK' : 'REAL'}`)
-    
-    if (connection.isMock) {
-      console.log(`📝 Mock mode: filtering ${data.products.length} products for tag: ${tag}`)
-      const mockProducts = data.products
-        .filter(p => p.tags && p.tags.includes(tag) && p.isPublished)
-        .slice(0, limit)
-        .map(p => ({
-          name: p.name,
-          href: `/product/${p.slug}`,
-          image: p.images[0] || '',
-        }))
-      console.log(`✅ Mock mode: found ${mockProducts.length} products for tag: ${tag}`)
-      return mockProducts as {
-        name: string
-        href: string
-        image: string
-      }[]
-    }
+    console.log(`📡 Database connection established`)
     
     if (!connection.prisma) {
       console.warn('Database connection failed in getProductsForCard')
@@ -433,16 +368,7 @@ export async function getProductsByTag({
   try {
     console.log(`🔍 getProductsByTag called with tag: ${tag}, limit: ${limit}`)
     const connection = await connectToDatabase()
-    console.log(`📡 Database connection mode: ${connection.isMock ? 'MOCK' : 'REAL'}`)
-    
-    if (connection.isMock) {
-      console.log(`📝 Mock mode: filtering ${data.products.length} products for tag: ${tag}`)
-      const mockProducts = data.products
-        .filter(p => p.tags && p.tags.includes(tag) && p.isPublished)
-        .slice(0, limit)
-      console.log(`✅ Mock mode: found ${mockProducts.length} products for tag: ${tag}`)
-      return JSON.parse(JSON.stringify(mockProducts))
-    }
+    console.log(`📡 Database connection established`)
     
     if (!connection.prisma) {
       console.warn('Database connection failed in getProductsByTag')
@@ -473,16 +399,6 @@ export async function getProductsByTag({
 export async function getProductBySlug(slug: string) {
   try {
     const connection = await connectToDatabase()
-    if (connection.isMock) {
-      const mockProduct = data.products.find(p => p.slug === slug && p.isPublished)
-      if (!mockProduct) return null
-      // Add id field for mock products
-      const productWithId = {
-        ...mockProduct,
-        id: `mock-${slug}`,
-      }
-      return JSON.parse(JSON.stringify(productWithId))
-    }
     
     if (!connection.prisma) {
       console.warn('Database connection failed in getProductBySlug')
@@ -524,19 +440,7 @@ export async function getRelatedProductsByCategory({
     } = data.settings[0];
     limit = limit || pageSize
 
-    if (connection.isMock) {
-      const mockProducts = data.products
-        .filter(p => p.isPublished && p.category === category && p.slug !== productId)
-        .slice(0, limit)
-        .map((product, index) => ({
-          ...product,
-          id: `mock-related-${index + 1}`,
-        }))
-      return {
-        data: JSON.parse(JSON.stringify(mockProducts)),
-        totalPages: Math.ceil(mockProducts.length / limit),
-      }
-    }
+    // Using real database connection
 
     if (!connection.prisma) {
       console.warn('Database connection failed in getRelatedProductsByCategory')
@@ -607,21 +511,7 @@ export async function getAllProducts({
       common: { pageSize },
     } = data.settings[0];
     limit = limit || pageSize
-
-    if (connection.isMock) {
-      // Return mock products for now with id field
-      const mockProducts = data.products.slice(0, limit).map((product, index) => ({
-        ...product,
-        id: `mock-all-${index + 1}`,
-      }))
-      return {
-        products: JSON.parse(JSON.stringify(mockProducts)),
-        totalPages: Math.ceil(data.products.length / pageSize),
-        totalProducts: data.products.length,
-        from: pageSize * (Number(page) - 1) + 1,
-        to: pageSize * (Number(page) - 1) + mockProducts.length,
-      }
-    }
+    
 
     if (!connection.prisma) {
       console.warn('Database connection failed in getAllProducts')
@@ -707,20 +597,7 @@ export async function getAllTags() {
     const cachedTags = getCachedData<string[]>('tags', async () => {
       const connection = await connectToDatabase()
       
-      if (connection.isMock) {
-        // Return mock tags from data
-        const mockTags = new Set<string>()
-        data.products.forEach((product: { tags: string[] }) => {
-          product.tags.forEach(tag => mockTags.add(tag))
-        })
-        return Array.from(mockTags)
-          .sort((a, b) => a.localeCompare(b))
-          .map(x => x
-            .split('-')
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ')
-          )
-      }
+      // Always use database
       
       if (!connection.prisma) {
         console.warn('Database connection failed in getAllTags cache')
@@ -757,23 +634,6 @@ export async function getAllTags() {
     
     // If not cached, fetch and cache
     const connection = await connectToDatabase()
-    
-    if (connection.isMock) {
-      // Return mock tags from data
-      const mockTags = new Set<string>()
-      data.products.forEach((product: { tags: string[] }) => {
-        product.tags.forEach(tag => mockTags.add(tag))
-      })
-      const result = Array.from(mockTags)
-        .sort((a, b) => a.localeCompare(b))
-        .map(x => x
-          .split('-')
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ')
-        )
-      setCachedData('tags', result)
-      return result
-    }
     
     if (!connection.prisma) {
       console.warn('Database connection failed in getAllTags')
@@ -815,72 +675,7 @@ export async function getHomePageData() {
   try {
     console.log('🔍 getHomePageData called - fetching all homepage data in single connection')
     const connection = await connectToDatabase()
-    console.log(`📡 Database connection mode: ${connection.isMock ? 'MOCK' : 'REAL'}`)
-    
-    if (connection.isMock) {
-      console.log('📝 Mock mode: getting all homepage data from mock data')
-      const mockProducts = data.products.filter(p => p.isPublished)
-      
-      const todaysDeals = mockProducts
-        .filter(p => p.tags && p.tags.includes('best-seller'))
-        .slice(0, 10)
-      
-      const bestSellingProducts = mockProducts
-        .filter(p => p.tags && p.tags.includes('best-seller'))
-        .slice(0, 10)
-      
-      const categories = [...new Set(mockProducts.map(p => p.category))].slice(0, 4)
-      
-      const newArrivals = mockProducts
-        .filter(p => p.tags && p.tags.includes('featured'))
-        .slice(0, 4)
-        .map(p => ({
-          name: p.name,
-          slug: p.slug,
-          image: p.images[0],
-          price: p.price,
-          listPrice: p.listPrice,
-          avgRating: p.avgRating,
-          numReviews: p.numReviews,
-        }))
-      
-      const featureds = mockProducts
-        .filter(p => p.tags && p.tags.includes('featured'))
-        .slice(0, 4)
-        .map(p => ({
-          name: p.name,
-          slug: p.slug,
-          image: p.images[0],
-          price: p.price,
-          listPrice: p.listPrice,
-          avgRating: p.avgRating,
-          numReviews: p.numReviews,
-        }))
-      
-      const bestSellers = mockProducts
-        .filter(p => p.tags && p.tags.includes('best-seller'))
-        .slice(0, 4)
-        .map(p => ({
-          name: p.name,
-          slug: p.slug,
-          image: p.images[0],
-          price: p.price,
-          listPrice: p.listPrice,
-          avgRating: p.avgRating,
-          numReviews: p.numReviews,
-        }))
-      
-      console.log(`✅ Mock mode: fetched all data - deals: ${todaysDeals.length}, bestSellers: ${bestSellingProducts.length}, categories: ${categories.length}, newArrivals: ${newArrivals.length}, featureds: ${featureds.length}, bestSellers: ${bestSellers.length}`)
-      
-      return {
-        todaysDeals,
-        bestSellingProducts,
-        categories,
-        newArrivals,
-        featureds,
-        bestSellers
-      }
-    }
+    console.log(`📡 Database connection established`)
     
     if (!connection.prisma) {
       console.warn('Database connection failed in getHomePageData')

@@ -22,9 +22,7 @@ export async function registerUser(userSignUp: IUserSignUp) {
       confirmPassword: userSignUp.confirmPassword,
     })
 
-    if (connection.isMock) {
-      return { success: false, error: 'User registration is not available in demo mode' }
-    }
+    // Require real database connection
 
     if (!connection.prisma) {
       return { success: false, error: 'Database connection failed' }
@@ -72,9 +70,7 @@ export async function deleteUser(id: string) {
   try {
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      return { success: false, message: 'Cannot delete user in mock mode' }
-    }
+    // Require real database connection
     
     if (!connection.prisma) {
       return { success: false, message: 'Database connection failed' }
@@ -99,9 +95,7 @@ export async function updateUser(user: z.infer<typeof UserUpdateSchema>) {
   try {
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      return { success: false, message: 'Cannot update user in mock mode' }
-    }
+    // Require real database connection
     
     if (!connection.prisma) {
       return { success: false, message: 'Database connection failed' }
@@ -136,22 +130,7 @@ export async function updateUserName(user: IUserName) {
 
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      // For mock mode, update the mock data
-      if (!session.user.name) {
-        return { success: false, message: 'اسم المستخدم غير محدد' }
-      }
-      const userIndex = data.users.findIndex(u => u.name === session.user.name)
-      if (userIndex !== -1) {
-        data.users[userIndex].name = user.name
-        return {
-          success: true,
-          message: 'تم تغيير الاسم',
-          data: { name: user.name },
-        }
-      }
-      return { success: false, message: 'لم يتم العثور على المستخدم في البيانات التجريبية' }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'فشل الاتصال بقاعدة البيانات' }
@@ -183,22 +162,7 @@ export async function updateUserPhone(user: { phone: string }) {
 
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      // For mock mode, update the mock data
-      if (!session.user.name) {
-        return { success: false, message: 'اسم المستخدم غير محدد' }
-      }
-      const userIndex = data.users.findIndex(u => u.name === session.user.name)
-      if (userIndex !== -1) {
-        data.users[userIndex].phone = user.phone
-        return {
-          success: true,
-          message: 'تم تحديث رقم الهاتف بنجاح',
-          data: { phone: user.phone },
-        }
-      }
-      return { success: false, message: 'لم يتم العثور على المستخدم في البيانات التجريبية' }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'فشل الاتصال بقاعدة البيانات' }
@@ -233,29 +197,7 @@ export async function updateUserPassword(user: {
 
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      // For mock mode, update the mock data
-      if (!session.user.name) {
-        return { success: false, message: 'اسم المستخدم غير محدد' }
-      }
-      const userIndex = data.users.findIndex(u => u.name === session.user.name)
-      if (userIndex !== -1) {
-        // Verify current password
-        const isCurrentPasswordValid = await bcrypt.compare(user.currentPassword, data.users[userIndex].password)
-        if (!isCurrentPasswordValid) {
-          return { success: false, message: 'كلمة المرور الحالية غير صحيحة' }
-        }
-        
-        // Update password
-        data.users[userIndex].password = await bcrypt.hash(user.newPassword, 5)
-        return {
-          success: true,
-          message: 'تم تغيير كلمة المرور بنجاح',
-          data: { message: 'تم تغيير كلمة المرور' },
-        }
-      }
-      return { success: false, message: 'لم يتم العثور على المستخدم في البيانات التجريبية' }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'فشل الاتصال بقاعدة البيانات' }
@@ -518,23 +460,7 @@ export async function getAllUsers({
   } = data.settings[0];
   limit = limit || pageSize
 
-  if (connection.isMock) {
-    console.log('📝 Mock mode: returning mock user data')
-    // Return mock users from data.ts
-    const mockUsers = data.users.map((user, index) => ({
-      ...user,
-      id: `mock-user-${index + 1}`,
-      createdAt: new Date(Date.now() - (index * 24 * 60 * 60 * 1000)), // Different creation dates
-    }))
-    
-    const skipAmount = (Number(page) - 1) * limit
-    const paginatedUsers = mockUsers.slice(skipAmount, skipAmount + limit)
-    
-    return {
-      data: JSON.parse(JSON.stringify(paginatedUsers)),
-      totalPages: Math.ceil(mockUsers.length / limit),
-    }
-  }
+  // Mock mode removed: always use database
 
   if (!connection.prisma) {
     console.warn('Database connection failed in getAllUsers')
@@ -560,9 +486,7 @@ export async function getAllUsers({
 export async function getUserById(userId: string) {
   const connection = await connectToDatabase()
   
-  if (connection.isMock) {
-    return null
-  }
+  // Mock mode removed: always use database
   
   if (!connection.prisma) {
     return null

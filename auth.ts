@@ -2,13 +2,7 @@ import Google from 'next-auth/providers/google'
 import bcrypt from 'bcryptjs'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { connectToDatabase } from './lib/db'
-import { prisma } from './lib/prisma'
-import data from './lib/data'
 import { ShippingAddress } from './types'
-import { loadEnvFromFile } from './lib/env-loader'
-
-// Load environment variables from .env file first
-loadEnvFromFile()
 
 import NextAuth, { type DefaultSession, type User } from 'next-auth'
 import authConfig from './auth.config'
@@ -65,41 +59,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             return null
           }
 
-                  if (connection.isMock) {
-          console.log('Using mock authentication for phone:', credentials.phone)
-          console.log('Available mock users:', data.users.map(u => ({ name: u.name, phone: u.phone })))
-          
-          // Use mock user data for authentication
-          const mockUser = data.users.find(u => u.phone === credentials.phone)
-          console.log('Found mock user:', mockUser ? mockUser.name : 'Not found')
-          
-          if (mockUser && mockUser.password) {
-            try {
-              const isMatch = await bcrypt.compare(
-                credentials.password as string,
-                mockUser.password
-              )
-              console.log('Password match:', isMatch)
-              
-              if (isMatch) {
-                const userData = {
-                  id: 'mock-user-id',
-                  name: mockUser.name,
-                  phone: mockUser.phone,
-                  role: mockUser.role,
-                }
-                console.log('Returning user data:', userData)
-                return userData
-              }
-            } catch (bcryptError) {
-              console.error('Bcrypt error:', bcryptError)
-              return null
-            }
-          }
-          console.log('Mock authentication failed')
-          return null
-        }
-
           if (!connection.prisma) {
             console.log('No Prisma connection available')
             return null
@@ -146,7 +105,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           console.log('JWT callback - user.phone:', (user as { phone: string }).phone)
           if (!user.name) {
             const connection = await connectToDatabase()
-            if (!connection.isMock && connection.prisma) {
+            if (connection.prisma) {
               try {
                 await connection.prisma.user.update({
                   where: { id: user.id },
@@ -183,14 +142,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!token.phone && token.sub) {
           try {
             const connection = await connectToDatabase()
-            if (connection.isMock) {
-              // For mock data, find user by name or role
-              const mockUser = data.users.find(u => u.name === token.name)
-              if (mockUser) {
-                token.phone = mockUser.phone
-                console.log('JWT callback - phone found from mock data:', mockUser.phone)
-              }
-            } else if (connection.prisma) {
+            if (connection.prisma) {
               // For real database, find user by ID
               const dbUser = await connection.prisma.user.findUnique({
                 where: { id: token.sub }

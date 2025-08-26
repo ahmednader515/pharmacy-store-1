@@ -15,7 +15,7 @@ export default async function DebugPage() {
   const featured = await getProductsForCard({ tag: 'featured' })
   const painRelief = await getProductsByTag({ tag: 'pain-relief' })
   
-  // Get all available tags from mock data
+  // Get all available tags from data
   const allTags = new Set<string>()
   data.products.forEach(product => {
     if (product.tags) {
@@ -52,7 +52,7 @@ export default async function DebugPage() {
         
         {/* Available Tags */}
         <div className="bg-blue-100 p-4 rounded">
-          <h2 className="text-xl font-semibold mb-2">Available Tags in Mock Data</h2>
+          <h2 className="text-xl font-semibold mb-2">Available Tags</h2>
           <div className="flex flex-wrap gap-2">
             {Array.from(allTags).map(tag => (
               <span key={tag} className="bg-blue-200 px-2 py-1 rounded text-sm">
@@ -117,9 +117,9 @@ export default async function DebugPage() {
           </div>
         </div>
         
-        {/* Raw Mock Data */}
+        {/* Raw Data Sample */}
         <div className="bg-gray-100 p-4 rounded">
-          <h2 className="text-xl font-semibold mb-2">Raw Mock Data Sample</h2>
+          <h2 className="text-xl font-semibold mb-2">Raw Data Sample</h2>
           <p><strong>Total Products:</strong> {data.products.length}</p>
           <details className="mt-2">
             <summary className="cursor-pointer font-semibold">Show first 3 products</summary>

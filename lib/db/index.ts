@@ -26,10 +26,9 @@ export const connectToDatabase = async (
   console.log('Environment:', process.env.NODE_ENV)
   console.log('DATABASE_URL exists:', !!DATABASE_URL)
   
-  // If no DATABASE_URL, return mock connection
+  // Require DATABASE_URL in all environments
   if (!DATABASE_URL) {
-    console.log('📝 No DATABASE_URL found, using mock data mode')
-    return { isMock: true, prisma: null }
+    throw new Error('DATABASE_URL is not set. Please configure your environment variables.')
   }
 
   try {
@@ -40,14 +39,8 @@ export const connectToDatabase = async (
     
     return { prisma, isMock: false }
   } catch (error) {
-    console.warn('❌ Failed to connect to PostgreSQL, using mock data mode:', error)
-    
-    // In production, we might want to be more strict about database connections
-    if (process.env.NODE_ENV === 'production') {
-      console.error('Production database connection failed. Check your DATABASE_URL and database status.')
-    }
-    
-    return { isMock: true, prisma: null }
+    console.error('❌ Failed to connect to PostgreSQL:', error)
+    throw error
   }
 }
 
@@ -66,9 +59,7 @@ export const forceRefreshDatabaseConnection = async () => {
   }
 }
 
-export const isUsingMockData = () => {
-  return !process.env.DATABASE_URL
-}
+export const isUsingMockData = () => false
 
 export const closeGlobalPrisma = async () => {
   console.log('🔌 Closing Prisma client...')

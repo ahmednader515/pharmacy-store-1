@@ -23,27 +23,6 @@ export const GET = async (request: NextRequest) => {
 
   const connection = await connectToDatabase()
   
-  if (connection.isMock) {
-    const mockProducts = data.products.filter(p => {
-      if (listType === 'history') {
-        return productIds.includes(p.slug)
-      } else {
-        return categories.includes(p.category) && !productIds.includes(p.slug)
-      }
-    })
-    
-    if (listType === 'history') {
-      return NextResponse.json(
-        mockProducts.sort(
-          (a, b) =>
-            productIds.indexOf(a.slug) -
-            productIds.indexOf(b.slug)
-        )
-      )
-    }
-    return NextResponse.json(mockProducts)
-  }
-  
   if (!connection.prisma) {
     return NextResponse.json({ error: 'Database connection failed' }, { status: 500 })
   }

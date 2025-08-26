@@ -16,26 +16,14 @@ export async function createAddress(address: ShippingAddress) {
 
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      // For mock mode, we'll just return success since we're managing in session/localStorage
-      return {
-        success: true,
-        message: 'تم إضافة العنوان بنجاح',
-        data: address,
-      }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'فشل الاتصال بقاعدة البيانات' }
     }
     
     // TODO: Implement database storage for addresses
-    // For now, return success
-    return {
-      success: true,
-      message: 'تم إضافة العنوان بنجاح',
-      data: address,
-    }
+    return { success: true, message: 'تم إضافة العنوان بنجاح', data: address }
   } catch (error) {
     return { success: false, message: formatError(error) }
   }
@@ -51,26 +39,14 @@ export async function updateAddress(index: number, address: ShippingAddress) {
 
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      // For mock mode, we'll just return success since we're managing in session/localStorage
-      return {
-        success: true,
-        message: 'تم تحديث العنوان بنجاح',
-        data: address,
-      }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'فشل الاتصال بقاعدة البيانات' }
     }
     
     // TODO: Implement database update for addresses
-    // For now, return success
-    return {
-      success: true,
-      message: 'تم تحديث العنوان بنجاح',
-      data: address,
-    }
+    return { success: true, message: 'تم تحديث العنوان بنجاح', data: address }
   } catch (error) {
     return { success: false, message: formatError(error) }
   }
@@ -86,24 +62,14 @@ export async function deleteAddress(address: ShippingAddress) {
 
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      // For mock mode, we'll just return success since we're managing in session/localStorage
-      return {
-        success: true,
-        message: 'تم حذف العنوان بنجاح',
-      }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'فشل الاتصال بقاعدة البيانات' }
     }
     
     // TODO: Implement database deletion for addresses
-    // For now, return success
-    return {
-      success: true,
-      message: 'تم حذف العنوان بنجاح',
-    }
+    return { success: true, message: 'تم حذف العنوان بنجاح' }
   } catch (error) {
     return { success: false, message: formatError(error) }
   }
@@ -119,24 +85,14 @@ export async function setDefaultAddress(address: ShippingAddress) {
 
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      // For mock mode, we'll just return success since we're managing in session/localStorage
-      return {
-        success: true,
-        message: 'تم تعيين العنوان كافتراضي بنجاح',
-      }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'فشل الاتصال بقاعدة البيانات' }
     }
     
     // TODO: Implement database update for default address
-    // For now, return success
-    return {
-      success: true,
-      message: 'تم تعيين العنوان كافتراضي بنجاح',
-    }
+    return { success: true, message: 'تم تعيين العنوان كافتراضي بنجاح' }
   } catch (error) {
     return { success: false, message: formatError(error) }
   }
@@ -152,24 +108,14 @@ export async function getUserAddresses() {
 
     const connection = await connectToDatabase()
     
-    if (connection.isMock) {
-      // For mock mode, return empty array since we're managing in session/localStorage
-      return {
-        success: true,
-        data: [],
-      }
-    }
+    // Mock mode removed: always use database
     
     if (!connection.prisma) {
       return { success: false, message: 'فشل الاتصال بقاعدة البيانات' }
     }
     
     // TODO: Implement database retrieval for addresses
-    // For now, return empty array
-    return {
-      success: true,
-      data: [],
-    }
+    return { success: true, data: [] }
   } catch (error) {
     return { success: false, message: formatError(error) }
   }
