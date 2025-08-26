@@ -259,14 +259,13 @@ export async function getAllCategories() {
     // Check cache first
     const cachedCategories = getCachedData<string[]>('categories', async () => {
       const connection = await connectToDatabase()
-      
-      if (!connection.prisma) {
+      const { prisma } = connection
+      if (!prisma) {
         console.warn('Database connection failed in getAllCategories cache')
         return []
       }
-      
       try {
-        const categories = await connection.prisma.product.findMany({
+        const categories = await prisma.product.findMany({
           where: { isPublished: true },
           select: { category: true },
           distinct: ['category']
